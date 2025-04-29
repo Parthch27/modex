@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}This or That - Movie Preference Quiz | Modex{% endblock %}
+
+{% block content %}
+<div class="container my-5 this-or-that-container">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4 text-light">Modex Primer</h1>
+            <p class="lead text-light mb-4">Choose which movie you prefer to help us understand your taste</p>
+            <div class="progress mb-4" style="height: 12px; border-radius: 10px; background-color: rgba(114, 54, 126, 0.1);">
+                <div class="progress-bar bg-purple" role="progressbar" style="width: {{ progress }}%; border-radius: 10px;" 
+                     aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <p class="text-light-purple"><span id="current-question">{{ current_question }}</span> of {{ total_questions }}</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-5">
+        <div class="col-12 text-center">
+            <form id="this-or-that-form" method="post" action="{{ url_for('process_this_or_that') }}">
+                <input type="hidden" name="quiz_id" value="{{ quiz_id }}">
+                <input type="hidden" name="current_question" value="{{ current_question }}">
+                
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card bg-glass movie-card h-100" id="movie1-card">
+                            <div class="card-header text-center">
+                                <h3 class="h5 text-light">{{ movie1.title }}</h3>
+                            </div>
+                            <div class="position-relative">
+                                <img src="https://image.tmdb.org/t/p/w500{{ movie1.poster_path }}" 
+                                     class="card-img-top movie-poster" alt="{{ movie1.title }}">
+                                <div class="movie-overlay">
+                                    <div class="movie-info">
+                                        <p class="small text-light mb-2">
+                                            {{ movie1.release_date.year if movie1.release_date else 'N/A' }} | 
+                                            {{ movie1.genres|join(', ') if movie1.genres else 'N/A' }}
+                                        </p>
+                                        <div class="d-flex align-items-center justify-content-center mb-2">
+                                            <span class="badge bg-warning text-dark me-2">{{ movie1.vote_average|round(1) }}</span>
+                                            <small class="text-light">{{ movie1.vote_count }} votes</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" name="choice" value="{{ movie1.id }}" 
+                                        class="btn btn-outline-light w-100 choose-btn">
+                                    <i class="fas fa-check me-2"></i>Choose This
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card bg-glass movie-card h-100" id="movie2-card">
+                            <div class="card-header text-center">
+                                <h3 class="h5 text-light">{{ movie2.title }}</h3>
+                            </div>
+                            <div class="position-relative">
+                                <img src="https://image.tmdb.org/t/p/w500{{ movie2.poster_path }}" 
+                                     class="card-img-top movie-poster" alt="{{ movie2.title }}">
+                                <div class="movie-overlay">
+                                    <div class="movie-info">
+                                        <p class="small text-light mb-2">
+                                            {{ movie2.release_date.year if movie2.release_date else 'N/A' }} | 
+                                            {{ movie2.genres|join(', ') if movie2.genres else 'N/A' }}
+                                        </p>
+                                        <div class="d-flex align-items-center justify-content-center mb-2">
+                                            <span class="badge bg-warning text-dark me-2">{{ movie2.vote_average|round(1) }}</span>
+                                            <small class="text-light">{{ movie2.vote_count }} votes</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="submit" name="choice" value="{{ movie2.id }}" 
+                                        class="btn btn-outline-light w-100 choose-btn">
+                                    <i class="fas fa-check me-2"></i>Choose This
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button type="submit" name="choice" value="skip" 
+                            class="btn btn-link skip-button">
+                        <i class="fas fa-forward me-2"></i>Skip this pair
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="completionModal" tabindex="-1" aria-labelledby="completionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-glass">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-light" id="completionModalLabel">Quiz Complete!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="display-1 mb-3">🎬</div>
+                <h4 class="text-light mb-3">Thanks!</h4>
+                <p class="text-light">Based on your 5 selections, Modex now understands your taste.</p>
+                <p class="text-light-purple">Your personalized recommendations are ready!</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <a href="{{ url_for('recommendations') }}" class="btn btn-primary">
+                    <i class="fas fa-thumbs-up me-2"></i>See My Recommendations
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const thisOrThatForm = document.getElementById('this-or-that-form');
+    const movie1Card = document.getElementById('movie1-card');
+    const movie2Card = document.getElementById('movie2-card');
+    
+    // Highlight selected card
+    const chooseButtons = document.querySelectorAll('.choose-btn');
+    chooseButtons.forEach(button => {
+        button.addEventListener('mouseover', function() {
+            const parentCard = this.closest('.movie-card');
+            parentCard.classList.add('movie-card-hover');
+        });
+        
+        button.addEventListener('mouseout', function() {
+            const parentCard = this.closest('.movie-card');
+            parentCard.classList.remove('movie-card-hover');
+        });
+    });
+    
+    // Show completion modal if needed
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('completed') === 'true') {
+        const completionModal = new bootstrap.Modal(document.getElementById('completionModal'));
+        completionModal.show();
+    }
+    
+    // Add click sound effect to buttons (optional)
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            // You could add a sound effect here if desired
+            // For now, we'll just add a subtle visual feedback
+            this.classList.add('clicked');
+            setTimeout(() => {
+                this.classList.remove('clicked');
+            }, 150);
+        });
+    });
+});
+</script>
+{% endblock %}

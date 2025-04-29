@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ movie.title }} - Modex{% endblock %}
+
+{% block content %}
+    <div class="movie-details">
+        <!-- Backdrop Image -->
+        <div class="position-relative">
+            <img src="https://image.tmdb.org/t/p/original{{ movie.backdrop_path }}" alt="{{ movie.title }}" class="movie-backdrop w-100">
+            <div class="backdrop-overlay"></div>
+        </div>
+        
+        <div class="container movie-details-content">
+            <div class="row">
+                <!-- Movie Poster -->
+                <div class="col-md-4 mb-4">
+                    <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}" class="movie-poster-lg">
+                    
+                    <!-- User Actions -->
+                    <div class="mt-4">
+                        {% if not watched %}
+                        <button class="btn btn-outline-primary w-100 mb-3" onclick="markAsWatched({{ movie.id }})" data-watch-id="{{ movie.id }}">
+                            <i class="fas fa-bookmark"></i> Mark as Watched
+                        </button>
+                        {% else %}
+                        <button class="btn btn-success w-100 mb-3" disabled>
+                            <i class="fas fa-check"></i> Watched
+                        </button>
+                        {% endif %}
+                        
+                        <!-- Rating System -->
+                        <div class="glass p-3 text-center">
+                            <h5>Rate This Movie</h5>
+                            <div class="rating-stars my-3" data-movie-id="{{ movie.id }}">
+                                {% for i in range(1, 11) %}
+                                <span class="star {% if user_rating and user_rating >= i %}active{% endif %}" data-value="{{ i }}">★</span>
+                                {% endfor %}
+                                <input type="hidden" name="rating" value="{{ user_rating or 0 }}">
+                            </div>
+                        </div>
+                        
+                        <!-- Predicted Rating -->
+                        {% if predicted_rating and not user_rating %}
+                        <div class="glass p-3 mt-3 text-center predicted-rating">
+                            <h5>AI Predicted Rating</h5>
+                            <div class="d-flex justify-content-center align-items-center my-2">
+                                <span class="display-4 text-warning">{{ predicted_rating }}</span>
+                                <span class="ms-2">/10</span>
+                            </div>
+                            <div class="rating-explanation" style="display:none;">
+                                <p>This rating is predicted based on your watch history and preferences.</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Movie Info -->
+                <div class="col-md-8">
+                    <h1 class="movie-details-title">{{ movie.title }}</h1>
+                    
+                    <!-- Movie Meta Info -->
+                    <div class="movie-details-meta">
+                        {% if movie.release_date %}
+                        <span>{{ movie.release_date.strftime('%Y') }}</span>
+                        <span>•</span>
+                        {% endif %}
+                        
+                        <!-- Average Rating -->
+                        <div class="movie-details-rating">
+                            <i class="fas fa-star"></i>
+                            <span>{{ movie.vote_average|round(1) }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Genres -->
+                    <div class="mb-4">
+                        {% for genre in movie.genres %}
+                        <span class="movie-details-genre">{{ genre.name }}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Overview -->
+                    <div class="movie-details-overview">
+                        <h3>Overview</h3>
+                        <p>{{ movie.overview }}</p>
+                    </div>
+                    
+                    <!-- Directors -->
+                    {% if movie.directors %}
+                    <div class="mb-4">
+                        <h3>Director{% if movie.directors|length > 1 %}s{% endif %}</h3>
+                        <p>
+                            {% for director in movie.directors %}
+                            <span class="me-3">{{ director.name }}</span>
+                            {% endfor %}
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Cast -->
+                    {% if movie.cast %}
+                    <div class="movie-details-cast">
+                        <h3>Cast</h3>
+                        <div class="cast-list">
+                            {% for actor in movie.cast[:8] %}
+                            <div class="cast-item">
+                                {% if actor.profile_path %}
+                                <img src="https://image.tmdb.org/t/p/w200{{ actor.profile_path }}" alt="{{ actor.name }}" class="cast-photo">
+                                {% else %}
+                                <div class="cast-photo-placeholder d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-user fa-2x"></i>
+                                </div>
+                                {% endif %}
+                                <div class="cast-name">{{ actor.name }}</div>
+                                {% if actor.character %}
+                                <div class="cast-character">{{ actor.character }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Similar Movies -->
+            {% if similar_movies %}
+            <section class="carousel-section mt-5 fade-in">
+                <div class="carousel-title">
+                    <h2>Similar Movies</h2>
+                    <div class="carousel-controls">
+                        <div class="carousel-control carousel-prev">
+                            <i class="fas fa-chevron-left"></i>
+                        </div>
+                        <div class="carousel-control carousel-next">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="movie-carousel">
+                    {% for movie in similar_movies %}
+                    <div class="movie-carousel-item">
+                        <div class="movie-card">
+                            <a href="{{ url_for('movie_details', movie_id=movie.id) }}">
+                                <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}" class="movie-poster">
+                                <div class="movie-info">
+                                    <h3 class="movie-title">{{ movie.title }}</h3>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/recommendations.js') }}"></script>
+{% endblock %}

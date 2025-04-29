@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Year in Movies | Modex{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4 text-light">Your Year in Movies</h1>
+            <p class="lead text-light">A look back at your movie journey this year</p>
+        </div>
+    </div>
+
+    <!-- User Stats Summary Card -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-black p-4">
+                <div class="row">
+                    <div class="col-md-3 text-center mb-3 mb-md-0">
+                        <div class="display-4 text-light mb-2">{{ stats.total_movies }}</div>
+                        <h5 class="text-light-purple">Movies Watched</h5>
+                    </div>
+                    <div class="col-md-3 text-center mb-3 mb-md-0">
+                        <div class="display-4 text-light mb-2">{{ stats.total_hours }}h</div>
+                        <h5 class="text-light-purple">Watch Time</h5>
+                    </div>
+                    <div class="col-md-3 text-center mb-3 mb-md-0">
+                        <div class="display-4 text-light mb-2">{{ stats.avg_rating|round(1) }}</div>
+                        <h5 class="text-light-purple">Avg. Rating</h5>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="display-6 text-light mb-2">{{ stats.top_genres[0] if stats.top_genres else 'N/A' }}</div>
+                        <h5 class="text-light-purple">Favorite Genre</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Movies and Genres Section -->
+    <div class="row mb-5">
+        <!-- Top Rated Movies -->
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="card bg-black h-100">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="text-light">Your Top Rated Movies</h3>
+                </div>
+                <div class="card-body">
+                    {% if top_movies %}
+                        <div class="list-group bg-transparent">
+                            {% for movie in top_movies %}
+                            <a href="{{ url_for('movie_details', movie_id=movie.id) }}" 
+                               class="list-group-item list-group-item-action bg-transparent border-light-purple">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://image.tmdb.org/t/p/w92{{ movie.poster_path }}" 
+                                             alt="{{ movie.title }}" class="me-3" style="width: 46px; height: auto;">
+                                        <h6 class="mb-0 text-light">{{ movie.title }}</h6>
+                                    </div>
+                                    <span class="badge bg-purple">{{ movie.user_rating }}</span>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="text-light">You haven't rated any movies yet.</p>
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-light mt-3">
+                                <i class="fas fa-film me-2"></i>Discover Movies
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Genre Distribution -->
+        <div class="col-md-6">
+            <div class="card bg-black h-100">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="text-light">Your Genre Distribution</h3>
+                </div>
+                <div class="card-body">
+                    {% if stats.genre_counts %}
+                        <canvas id="genreChart" width="400" height="400"></canvas>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="text-light">Watch more movies to see your genre preferences.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Watch History Timeline and Recommendations -->
+    <div class="row">
+        <!-- Watch History Timeline -->
+        <div class="col-md-6 mb-4 mb-md-0">
+            <div class="card bg-black h-100">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="text-light">Watch History Timeline</h3>
+                </div>
+                <div class="card-body">
+                    {% if watch_history %}
+                        <canvas id="timelineChart" width="400" height="250"></canvas>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="text-light">Your watch history will appear here.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Rating Distribution -->
+        <div class="col-md-6">
+            <div class="card bg-black h-100">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="text-light">Your Rating Distribution</h3>
+                </div>
+                <div class="card-body">
+                    {% if stats.rating_distribution %}
+                        <canvas id="ratingChart" width="400" height="250"></canvas>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="text-light">Rate more movies to see your distribution.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Movie Insights -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-black">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="text-light">Movie Personality Insights</h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4 mb-md-0">
+                            <div class="insights-icon mb-3">
+                                <i class="fas fa-lightbulb fa-3x text-warning"></i>
+                            </div>
+                            <h4 class="text-light">{{ insights.personality_type }}</h4>
+                            <p class="text-light">{{ insights.personality_description }}</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-4 mb-md-0">
+                            <div class="insights-icon mb-3">
+                                <i class="fas fa-calendar-alt fa-3x text-info"></i>
+                            </div>
+                            <h4 class="text-light">{{ insights.best_movie_day }}</h4>
+                            <p class="text-light">{{ insights.day_description }}</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="insights-icon mb-3">
+                                <i class="fas fa-chart-line fa-3x text-success"></i>
+                            </div>
+                            <h4 class="text-light">{{ insights.recommendation_accuracy }}%</h4>
+                            <p class="text-light">Recommendation match rate with your tastes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Report Section -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <div class="d-flex justify-content-center gap-3">
+                <button class="btn btn-outline-light" id="downloadReportBtn">
+                    <i class="fas fa-download me-2"></i>Download Report
+                </button>
+                <button class="btn btn-outline-light" id="shareReportBtn">
+                    <i class="fas fa-share-alt me-2"></i>Share Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Genre Distribution Chart
+    {% if stats.genre_counts %}
+    const genreCtx = document.getElementById('genreChart').getContext('2d');
+    const genreChart = new Chart(genreCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ stats.genre_labels|tojson }},
+            datasets: [{
+                data: {{ stats.genre_counts|tojson }},
+                backgroundColor: [
+                    '#72367E', '#9B59B6', '#8E44AD', '#A569BD', '#C39BD3',
+                    '#BB8FCE', '#D2B4DE', '#E8DAEF', '#633974', '#512E5F'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        color: '#fff'
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Watch History Timeline Chart
+    {% if watch_history %}
+    const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+    const timelineChart = new Chart(timelineCtx, {
+        type: 'line',
+        data: {
+            labels: {{ watch_history.months|tojson }},
+            datasets: [{
+                label: 'Movies Watched',
+                data: {{ watch_history.counts|tojson }},
+                borderColor: '#72367E',
+                backgroundColor: 'rgba(114, 54, 126, 0.2)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#fff',
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#fff'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Rating Distribution Chart
+    {% if stats.rating_distribution %}
+    const ratingCtx = document.getElementById('ratingChart').getContext('2d');
+    const ratingChart = new Chart(ratingCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ stats.rating_labels|tojson }},
+            datasets: [{
+                label: 'Number of Movies',
+                data: {{ stats.rating_distribution|tojson }},
+                backgroundColor: '#72367E',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#fff',
+                        stepSize: 1
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#fff'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#fff'
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // Download Report Button
+    document.getElementById('downloadReportBtn').addEventListener('click', function() {
+        // This would normally generate a PDF or image
+        alert('Report download feature will be implemented soon!');
+    });
+
+    // Share Report Button
+    document.getElementById('shareReportBtn').addEventListener('click', function() {
+        // This would normally open share options
+        alert('Report sharing feature will be implemented soon!');
+    });
+});
+</script>
+{% endblock %}

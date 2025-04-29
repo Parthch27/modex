@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Modex - Discover Movies You'll Love{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="CinemaSync\static\css\style.css">
+    <!-- Hero Section -->
+    <section class="hero" style="background-image: url('https://image.tmdb.org/t/p/original/{{ trending_movies[0].backdrop_path if trending_movies and trending_movies[0].backdrop_path else '' }}');">
+        <div class="hero-content">
+            <h1 class="fade-in">Discover Movies Made For You</h1>
+            <p class="fade-in">Modex uses AI to recommend movies based on your mood and preferences.</p>
+            <div class="hero-buttons fade-in">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">My Dashboard</a>
+                    <a href="{{ url_for('quiz') }}" class="btn btn-outline-light btn-lg">Take the Quiz</a>
+                {% else %}
+                    <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Sign Up Now</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">Log In</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    
+    <div class="container">
+        <!-- Trending Movies Section -->
+        {% if trending_movies %}
+        <section class="carousel-section fade-in">
+            <div class="carousel-title">
+                <h2>Trending Now</h2>
+                <div class="carousel-controls">
+                    <div class="carousel-control carousel-prev">
+                        <i class="fas fa-chevron-left"></i>
+                    </div>
+                    <div class="carousel-control carousel-next">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="movie-carousel">
+                {% for movie in trending_movies %}
+                <div class="movie-carousel-item">
+                    <div class="movie-card">
+                        <a href="{{ url_for('movie_details', movie_id=movie.id) }}">
+                            <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}" class="movie-poster">
+                            <div class="movie-info">
+                                <h3 class="movie-title">{{ movie.title }}</h3>
+                                <div class="movie-rating">
+                                    <i class="fas fa-star"></i> {{ movie.vote_average|round(1) }}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+        
+        <!-- Personalized Recommendations Section -->
+        {% if personalized_movies %}
+        <section class="carousel-section fade-in">
+            <div class="carousel-title">
+                <h2>Recommended For You</h2>
+                <div class="carousel-controls">
+                    <div class="carousel-control carousel-prev">
+                        <i class="fas fa-chevron-left"></i>
+                    </div>
+                    <div class="carousel-control carousel-next">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="movie-carousel">
+                {% for movie in personalized_movies %}
+                <div class="movie-carousel-item">
+                    <div class="movie-card">
+                        <a href="{{ url_for('movie_details', movie_id=movie.id) }}">
+                            <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}" class="movie-poster">
+                            <div class="movie-info">
+                                <h3 class="movie-title">{{ movie.title }}</h3>
+                                <div class="movie-rating">
+                                    <i class="fas fa-star"></i> {{ movie.vote_average|round(1) }}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+        
+        <!-- Top Rated Movies Section -->
+        {% if top_rated_movies %}
+        <section class="carousel-section fade-in">
+            <div class="carousel-title">
+                <h2>Top Rated</h2>
+                <div class="carousel-controls">
+                    <div class="carousel-control carousel-prev">
+                        <i class="fas fa-chevron-left"></i>
+                    </div>
+                    <div class="carousel-control carousel-next">
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="movie-carousel">
+                {% for movie in top_rated_movies %}
+                <div class="movie-carousel-item">
+                    <div class="movie-card">
+                        <a href="{{ url_for('movie_details', movie_id=movie.id) }}">
+                            <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}" class="movie-poster">
+                            <div class="movie-info">
+                                <h3 class="movie-title">{{ movie.title }}</h3>
+                                <div class="movie-rating">
+                                    <i class="fas fa-star"></i> {{ movie.vote_average|round(1) }}
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+        
+        <!-- Features Section -->
+        <section class="section fade-in">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="glass p-4 h-100">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-brain fa-3x text-purple"></i>
+                        </div>
+                        <h3 class="text-center">AI-Powered Recommendations</h3>
+                        <p>Our machine learning algorithms analyze your preferences to suggest movies you'll love.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="glass p-4 h-100">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-smile-beam fa-3x text-purple"></i>
+                        </div>
+                        <h3 class="text-center">Mood-Based Selection</h3>
+                        <p>Tell us how you're feeling and we'll recommend the perfect movies for your mood.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="glass p-4 h-100">
+                        <div class="text-center mb-3">
+                            <i class="fas fa-star fa-3x text-purple"></i>
+                        </div>
+                        <h3 class="text-center">Personalized Ratings</h3>
+                        <p>Get personalized ratings based on your watching history and preferences.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Quiz CTA Section -->
+        <section class="section text-center fade-in">
+            <div class="glass p-5">
+                <h2>Find Your Perfect Movie Match</h2>
+                <p class="lead mb-4">Take our quick movie personality quiz to get tailored recommendations based on your current mood.</p>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('quiz') }}" class="btn btn-primary btn-lg">Start the Quiz</a>
+                {% else %}
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Sign Up & Get Started</a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">Log In</a>
+                    </div>
+                    <p class="mt-3 text-muted">Create an account to save your quiz results and get personalized recommendations</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        // Add any page-specific JavaScript here
+    </script>
+{% endblock %}

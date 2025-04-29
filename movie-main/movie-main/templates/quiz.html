@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Modex - Movie Mood Quiz{% endblock %}
+
+{% block content %}
+    <div class="container mt-5 pt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="text-center mb-4"> Mood Match</h1>
+                <p class="text-center mb-5">Answer a few questions about how you're feeling, and we'll recommend movies that match your mood.</p>
+                
+                <form id="quiz-form" action="{{ url_for('process_quiz') }}" method="post">
+                    <div class="quiz-container">
+                        <div class="quiz-progress-container mb-4">
+                            <p class="quiz-progress">Question 1 of 5</p>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 20%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="quiz-card fade-in">
+                            <h2 class="quiz-question">How is your energy level right now?</h2>
+                            
+                            <div class="quiz-options">
+                                <div class="quiz-option" data-value="high">
+                                    High - I'm full of energy
+                                </div>
+                                <div class="quiz-option" data-value="medium">
+                                    Medium - I feel balanced
+                                </div>
+                                <div class="quiz-option" data-value="low">
+                                    Low - I'm feeling tired
+                                </div>
+                            </div>
+                            
+                            <div class="quiz-controls">
+                                <button type="submit" id="quiz-submit" class="btn btn-primary">Next Question</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="row mt-5 pt-5">
+            <div class="col-md-6 offset-md-3 text-center fade-in">
+                <div class="glass p-4">
+                    <h3>How Our Quiz Works</h3>
+                    <p>Our AI-powered recommendation system analyzes your answers and matches them with movies that best fit your current mood and preferences.</p>
+                    <p>We consider factors like energy level, emotional state, attention span, and social preferences to create a personalized movie experience.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/quiz.js') }}"></script>
+{% endblock %}
