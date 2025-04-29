@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Modex{% endblock %}
+
+{% block content %}
+    <div class="container mt-5 pt-5">
+        <h1 class="mb-4">{{ title }}</h1>
+        
+        {% if movies %}
+        <!-- Filter Options -->
+        <div class="movie-filters glass p-3 mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Filter by Genre</h5>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <span class="filter-genre badge rounded-pill bg-dark" data-genre="Action">Action</span>
+                        <span class="filter-genre badge rounded-pill bg-dark" data-genre="Comedy">Comedy</span>
+                        <span class="filter-genre badge rounded-pill bg-dark" data-genre="Drama">Drama</span>
+                        <span class="filter-genre badge rounded-pill bg-dark" data-genre="Sci-Fi">Sci-Fi</span>
+                        <span class="filter-genre badge rounded-pill bg-dark" data-genre="Horror">Horror</span>
+                        <span class="filter-genre badge rounded-pill bg-dark" data-genre="Romance">Romance</span>
+                        <span class="filter-genre badge rounded-pill bg-dark" data-genre="Thriller">Thriller</span>
+                        <span class="filter-genre badge rounded-pill bg-dark" data-genre="Adventure">Adventure</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <h5>Minimum Rating</h5>
+                    <input type="range" class="form-range filter-rating" min="0" max="10" step="0.5" value="0">
+                    <div class="d-flex justify-content-between">
+                        <span>Any</span>
+                        <span class="rating-value">0</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <h5>Release Year</h5>
+                    <input type="range" class="form-range filter-year" min="1950" max="2023" step="1" value="1950">
+                    <div class="d-flex justify-content-between">
+                        <span>Any</span>
+                        <span class="year-value">1950</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Movie Grid -->
+        <div class="row">
+            {% for movie in movies %}
+            <div class="col-md-3 col-sm-6 mb-4 movie-item" 
+                 data-genres="{% for genre in movie.genres %}{{ genre.name }}{% if not loop.last %},{% endif %}{% endfor %}"
+                 data-rating="{{ movie.vote_average|default(0) }}"
+                 data-year="{% if movie.release_date %}{{ movie.release_date.year }}{% endif %}">
+                <div class="movie-card h-100 fade-in">
+                    <a href="{{ url_for('movie_details', movie_id=movie.id) }}">
+                        <img src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}" class="movie-poster">
+                        <div class="movie-info">
+                            <h3 class="movie-title">{{ movie.title }}</h3>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="movie-rating">
+                                    <i class="fas fa-star"></i> {{ movie.vote_average|round(1)|default('N/A') }}
+                                </div>
+                                {% if movie.release_date %}
+                                <div class="movie-year">{{ movie.release_date.year }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center my-5 py-5">
+            <div class="glass p-5">
+                <i class="fas fa-film fa-4x mb-3 text-muted"></i>
+                <h2>No Movies Found</h2>
+                <p class="lead">We couldn't find any movies matching your criteria.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Back to Home</a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Take Quiz CTA -->
+        <div class="text-center my-5 fade-in">
+            <div class="glass p-4">
+                <h3>Want more personalized recommendations?</h3>
+                <p>Take our movie mood quiz to get recommendations tailored to how you're feeling right now.</p>
+                <a href="{{ url_for('quiz') }}" class="btn btn-primary mt-2">Take the Mood Quiz</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/recommendations.js') }}"></script>
+{% endblock %}

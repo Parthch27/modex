@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Modex - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card bg-black mb-4">
+                <div class="card-body">
+                    <h1 class="card-title text-light">Welcome, {{ current_user.username }}!</h1>
+                    <p class="card-text text-light">Your personalized movie dashboard is here.</p>
+                    
+                    <!-- Display flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} ">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- User Stats Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-black  h-100">
+                <div class="card-body">
+                    <h3 class="card-title text-light">Your Stats</h3>
+                    <ul class="list-group list-group-flush bg-transparent">
+                        <li class="list-group-item bg-transparent text-light">Movies Watched: {{ current_user.watch_history|length }}</li>
+                        <li class="list-group-item bg-transparent text-light">Total Watch Time: {{ (current_user.total_watch_time or 0) // 60 }} hours</li>
+                        <li class="list-group-item bg-transparent text-light ">Movies Rated: {{ current_user.ratings|length if current_user.ratings else 0 }}</li>
+                        <li class="list-group-item bg-transparent text-light">Member Since: {{ current_user.created_at.strftime('%B %d, %Y') }}</li>
+                    </ul>
+                </div>
+                <div class="card-footer bg-transparent text-center">
+                    <a href="{{ url_for('year_end_report') }}" class="btn btn-outline-primary text-light">View Full Report</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-black h-100">
+                <div class="card-body">
+                    <h3 class="card-title text-light">Discover Movies</h3>
+                    <p class="text-light"> Get personalized recommendations based on your mood and preferences.</p>
+                    <div class="d-grid gap-3">
+                        <a href="{{ url_for('quiz') }}" class="btn btn-primary text-light">Mood Match</a>
+                        <a href="{{ url_for('this_or_that') }}" class="btn btn-outline-primary text-light">Modex Primer</a>
+                        <a href="{{ url_for('recommendations') }}" class="btn btn-outline-primary text-light">View Recommendations</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Activity Card -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-black h-100">
+                <div class="card-body">
+                    <h3 class="card-title text-light">Recent Activity</h3>
+                    {% if current_user.watch_history %}
+                        <ul class="list-group list-group-flush bg-transparent">
+                            {% for movie_id in current_user.watch_history[-5:]|reverse %}
+                                <li class="list-group-item bg-transparent">
+                                    <a href="{{ url_for('movie_details', movie_id=movie_id) }}" class="text-decoration-none">
+                                        <i class="fas fa-film me-2"></i> Watched a movie
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No recent activity yet. Start watching and rating movies!</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent text-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-primary">Explore Movies</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
